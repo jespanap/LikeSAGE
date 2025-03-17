@@ -30,13 +30,13 @@
         <div class="my-4 text-gray-500 text-sm text-center">O con tu correo y contraseña:</div>
 
         <!-- Formulario -->
-        <form action="/login" method="POST">
+        <form id="login-form">
             <div class="mb-4">
-                <input type="email" name="email" placeholder="Escribe tu email"
+                <input type="email" name="email" id="email" placeholder="Escribe tu email"
                     class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300">
             </div>
             <div class="mb-4">
-                <input type="password" name="password" placeholder="Escribe tu contraseña"
+                <input type="password" name="password" id="password" placeholder="Escribe tu contraseña"
                     class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300">
             </div>
             <div class="flex justify-between text-sm text-blue-500">
@@ -48,9 +48,33 @@
             </button>
         </form>
 
+        <p id="error-message" class="text-red-500 text-sm mt-4 text-center hidden">Credenciales incorrectas</p>
+
         <div class="mt-6 text-center text-gray-600 text-sm">
             <a href="/register" class="text-blue-500">Crea una cuenta</a> · <a href="/offers" class="text-blue-500">Ir a ver empleos</a>
         </div>
     </div>
+
+    <script>
+        document.getElementById("login-form").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const errorMessage = document.getElementById("error-message");
+
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ email, password })
+            });
+
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                errorMessage.classList.remove("hidden");
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,3 +1,10 @@
 fastapi 
 uvicorn[standard]
 jinja2
+passlib 
+python-jose[cryptography] 
+sqlalchemy
+python-multipart
+email-validator
+jwt
+bcrypt==4.0.1
