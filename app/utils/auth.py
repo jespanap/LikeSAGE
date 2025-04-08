@@ -1,23 +1,29 @@
-# pa manejar la seguridad y autenticacion muajaja
-
-from passlib.context import CryptContext
+import jwt
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
+from fastapi import Request, Response
 
-SECRET_KEY = "supersecretkey"
+SECRET_KEY = "tu_secreto_super_secreto"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+EXPIRATION_MINUTES = 60
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def create_token(username: str):
+    expire = datetime.utcnow() + timedelta(minutes=EXPIRATION_MINUTES)
+    return jwt.encode({"sub": username, "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
 
-def hash_password(password: str):
-    return pwd_context.hash(password)
+def get_current_user(request: Request):
+    token = request.cookies.get("access_token")
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload.get("sub")
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.PyJWTError:
+        return None
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+def set_token_cookie(response: Response, token: str):
+    response.set_cookie(key="access_token", value=token, httponly=True, samesite="Lax")
 
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+def clear_token_cookie(response: Response):
+    response.delete_cookie(key="access_token")

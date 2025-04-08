@@ -1,8 +1,3 @@
-.DS_Store
-*.pyc
-__pycache__
-.env
-*.db
-.venv
-.vscode/
-*.png
+__pycache_
+myenv
+tree.txt

@@ -1,55 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Home - Bolsa de Empleo{% endblock %}
+{% block title %}Inicio{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Banner principal con texto e imagen -->
-    <div class="banner-container mt-4 p-5 bg-light rounded d-flex align-items-center justify-content-between position-relative">
-        <!-- Sección de texto -->
-        <div class="banner-text">
-            <h1 class="fw-bold">+100.000 <span class="text-primary">trabajos disponibles</span></h1>
-            <p class="fs-5">para temporada <a href="/offers" class="text-primary fw-bold">¡conócelos y aplica!</a></p>
-            <div class="search-bar d-flex">
-                <input type="text" class="form-control" placeholder="Buscar empleo por ciudad, cargo, empresa o profesión">
-                <button class="btn btn-dark ms-2">Buscar</button>
-            </div>
-        </div>
-
-        <!-- Imagen de la persona -->
-        <div class="banner-image">
-            <img src="{{ url_for('static', path='man.png') }}" alt="Persona">
-        </div>
-    </div>
-
-    <!-- Categorías de empleo -->
-    <div class="job-categories mt-4">
-        <div class="category">
-            <i class="icon">📍</i>
-            <span>Empleos por <b>Ciudades</b></span>
-            <i class="arrow">➡️</i>
-        </div>
-        <div class="category">
-            <i class="icon">🏛️</i>
-            <span>Empleos por <b>Sector laboral</b></span>
-            <i class="arrow">➡️</i>
-        </div>
-        <div class="category">
-            <i class="icon">💼</i>
-            <span>Empleos por <b>Cargo profesional</b></span>
-            <i class="arrow">➡️</i>
-        </div>
-        <div class="category">
-            <i class="icon">📜</i>
-            <span>Todos los <b>Empleos</b></span>
-            <i class="arrow">➡️</i>
-        </div>
-    </div>
-
-    <!-- Sección de regalo de empleo -->
-    <div class="gift-job mt-4 p-4 text-white text-center rounded">
-        <h3>🎁 ¡Regala un empleo!</h3>
-        <p>Cambia el futuro de tus amigos regalándoles la oportunidad que están esperando.</p>
-    </div>
-</div>
+    {% if user %}
+        <h1>Bienvenido, {{ user }}!</h1>
+    {% else %}
+        <h1>Bienvenido, visitante!</h1>
+    {% endif %}
 {% endblock %}
