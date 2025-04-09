@@ -2,42 +2,42 @@
 
 from app.database.config.config import driver
 
-def crear_oferta(
-    titulo,
-    empresa,
-    ciudad,
-    nivel_educativo,
-    nivel_experiencia,
-    habilidades
-):
-    query = """
-    MERGE (v:Vacancy {title: $titulo})
-    MERGE (c:Company {name: $empresa})
-    MERGE (ci:City {name: $ciudad})
-    MERGE (e:EducationLevel {level: $nivel_educativo})
-    MERGE (x:ExperienceLevel {level: $nivel_experiencia})
-    MERGE (v)-[:PUBLISHED_BY]->(c)
-    MERGE (v)-[:LOCATED_IN]->(ci)
-    MERGE (v)-[:REQUIRES_EDUCATION]->(e)
-    MERGE (v)-[:REQUIRES_EXPERIENCE]->(x)
-    WITH v
-    UNWIND $habilidades AS kw
-    MERGE (k:Skill {name: kw})
-    MERGE (v)-[:REQUIRES_SKILL]->(k)
-    RETURN v.title AS created
-    """
-
-    with driver.session() as session:
-        result = session.run(query, {
-            "titulo": titulo,
-            "empresa": empresa,
-            "ciudad": ciudad,
-            "nivel_educativo": nivel_educativo,
-            "nivel_experiencia": nivel_experiencia,
-            "habilidades": habilidades
-        })
-        for record in result:
-            print(f"✅ Oferta creada exitosamente: {record['created']}")
+#def crear_oferta(
+#    titulo,
+#    empresa,
+#    ciudad,
+#    nivel_educativo,
+#    nivel_experiencia,
+#    habilidades
+#):
+#    query = """
+#    MERGE (v:Vacancy {title: $titulo})
+#    MERGE (c:Company {name: $empresa})
+#    MERGE (ci:City {name: $ciudad})
+#    MERGE (e:EducationLevel {level: $nivel_educativo})
+#    MERGE (x:ExperienceLevel {level: $nivel_experiencia})
+#    MERGE (v)-[:PUBLISHED_BY]->(c)
+#    MERGE (v)-[:LOCATED_IN]->(ci)
+#    MERGE (v)-[:REQUIRES_EDUCATION]->(e)
+#    MERGE (v)-[:REQUIRES_EXPERIENCE]->(x)
+#    WITH v
+#    UNWIND $habilidades AS kw
+#    MERGE (k:Skill {name: kw})
+#    MERGE (v)-[:REQUIRES_SKILL]->(k)
+#    RETURN v.title AS created
+#    """
+#
+#    with driver.session() as session:
+#        result = session.run(query, {
+#            "titulo": titulo,
+#            "empresa": empresa,
+#            "ciudad": ciudad,
+#            "nivel_educativo": nivel_educativo,
+#            "nivel_experiencia": nivel_experiencia,
+#            "habilidades": habilidades
+#        })
+#        for record in result:
+#            print(f"✅ Oferta creada exitosamente: {record['created']}")
             
 
 def get_all_vacancies():
