@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ofertas laborales</title>
+</head>
+<body>
+    <h1>Estas son las ofertas</h1>
+    <div id="offers">
+        <ul>
+            {% for v in vacancy %}
+                <li>
+                    <strong>{{ v.titulo }}</strong><br>
+                    Empresa: {{ v.empresa }}<br>
+                    Ciudad: {{ v.ciudad }}<br>
+                    Nivel educativo: {{ v.nivel_educativo }}<br>
+                    Nivel de experiencia: {{ v.nivel_experiencia }}<br>
+                    Habilidades requeridas:
+                    <ul>
+                        {% for h in v.habilidades %}
+                            <li>{{ h }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
