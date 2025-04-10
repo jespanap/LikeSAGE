@@ -16,17 +16,18 @@ async def show_register_form(request: Request):
 @router.post("/register")
 async def do_register(
     request: Request,
-    username: str = Form(...),
+    correo: str = Form(...),
     password: str = Form(...)
 ):
     if get_current_user(request):
         return RedirectResponse("/", status_code=303)
 
-    success = register.register_user(username, password)
+    success = register.register_user(correo, password)
     if success:
         return RedirectResponse("/login", status_code=303)
     else:
         return templates.TemplateResponse("register.html", {
             "request": request,
-            "error": "El nombre de usuario ya existe"
+            "error": "El correo ya está registrado"
         })
+

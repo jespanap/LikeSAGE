@@ -1,6 +1,7 @@
 import json
 from passlib.context import CryptContext
 from pathlib import Path
+from app.database.config.config import driver
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 USERS_FILE = Path("app/data/users.json")
@@ -12,13 +13,24 @@ def load_users():
     return {}
 
 def authenticate_user(username: str, password: str):
-    users = load_users()
-    user = users.get(username)
+    print(f"[DEBUG] Intentando autenticar: {username}")
+    with driver.session() as session:
+        query = """
+        MATCH (c:Candidate {correo: $username})
+        RETURN c.password AS hashed_password
+        """
+        result = session.run(query, username=username)
+        record = result.single()
 
-    if isinstance(user, str):
-        print(f"[ERROR] Usuario '{username}' tiene un valor string en vez de un dict. Revisa tu users.json.")
+        if record:
+            hashed_password = record["hashed_password"]
+            print(f"[DEBUG] Hash encontrado: {hashed_password}")
+            if pwd_context.verify(password, hashed_password):
+                print(f"[DEBUG] Contraseña verificada con éxito.")
+                return {"username": username}
+            else:
+                print(f"[DEBUG] Contraseña incorrecta.")
+        else:
+            print(f"[DEBUG] Usuario no encontrado en Neo4j.")
+
         return None
-
-    if user and pwd_context.verify(password, user["password"]):
-        return {"username": username}
-    return None

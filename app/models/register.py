@@ -1,25 +1,26 @@
-import json
-import os
 from passlib.context import CryptContext
+from app.database.config.config import driver  # Ajusta si tienes otra ruta
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-USERS_FILE = "app/data/users.json"
 
-def register_user(username: str, password: str) -> bool:
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, "r") as f:
-            users = json.load(f)
-    else:
-        users = {}
+def register_user(correo: str, password: str) -> bool:
+    hashed_password = pwd_context.hash(password)
 
-    if username in users:
-        return False
+    with driver.session() as session:
+        # Verifica si ya existe el correo
+        result = session.run("MATCH (c:Candidate {correo: $correo}) RETURN c", correo=correo)
+        if result.single():
+            return False  # Ya hay un usuario con ese correo
 
-    users[username] = {
-        "password": pwd_context.hash(password)
-    }
-
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f, indent=4)
-
-    return True
+        # Crea nodo Candidate
+        session.run(
+            """
+            CREATE (c:Candidate {
+                correo: $correo,
+                password: $password
+            })
+            """,
+            correo=correo,
+            password=hashed_password
+        )
+        return True
