@@ -1,7 +1,105 @@
 <form action="/register" method="post">
-  <input name="correo" placeholder="Correo" required>
+  <input name="correo" type="email" placeholder="Correo" required>
   <input name="password" type="password" placeholder="Contraseña" required>
+
+  <input name="nombre" placeholder="Nombre" required>
+  <input name="apellido" placeholder="Apellido" required>
+  <input name="telefono" type="tel" placeholder="Número de Teléfono" required>
+  <input name="pais" placeholder="País de residencia" required>
+
+  <label>Sectores laborales (máximo 5):</label><br>
+  <div id="sectores-container">
+    <label><input type="checkbox" name="sectores" value="tecnologia"> Tecnología</label><br>
+    <label><input type="checkbox" name="sectores" value="salud"> Salud</label><br>
+    <label><input type="checkbox" name="sectores" value="educacion"> Educación</label><br>
+    <label><input type="checkbox" name="sectores" value="construccion"> Construcción</label><br>
+    <label><input type="checkbox" name="sectores" value="finanzas"> Finanzas</label><br>
+    <label><input type="checkbox" name="sectores" value="turismo"> Turismo</label><br>
+    <label><input type="checkbox" name="sectores" value="agricultura"> Agricultura</label><br>
+    <label><input type="checkbox" name="sectores" value="manufactura"> Manufactura</label><br>
+    <label><input type="checkbox" name="sectores" value="comercio"> Comercio</label><br>
+    <label><input type="checkbox" name="sectores" value="transporte"> Transporte</label><br>
+  </div>
+  
+  <script>
+    const maxSeleccion = 5;
+    const checkboxes = document.querySelectorAll('#sectores-container input[type="checkbox"]');
+  
+    checkboxes.forEach(chk => {
+      chk.addEventListener('change', () => {
+        const seleccionados = Array.from(checkboxes).filter(c => c.checked);
+        if (seleccionados.length > maxSeleccion) {
+          chk.checked = false;
+          alert("Solo puedes seleccionar hasta 5 sectores laborales.");
+        }
+      });
+    });
+  </script>
+
+  <input name="cargo" placeholder="Cargo o empleo que busca" required>
+  <input name="salario_minimo" type="number" placeholder="Salario mínimo aceptado" min="0" required>
+
+
+  <label>Último nivel de estudios:</label>
+  <select name="nivel_estudios" required>
+    <option value="primaria">Primaria</option>
+    <option value="secundaria">Secundaria</option>
+    <option value="tecnico">Técnico</option>
+    <option value="tecnologo">Tecnólogo</option>
+    <option value="pregrado">Pregrado</option>
+    <option value="posgrado">Posgrado</option>
+    <option value="doctorado">Doctorado</option>
+  </select><br>
+
+  <label>¿Dónde quiere trabajar?</label>
+  <select name="lugar_trabajo" required>
+    <option value="colombia">Colombia</option>
+    <option value="latinoamerica">Latinoamérica</option>
+    <option value="norteamerica">Norteamérica</option>
+    <option value="europa">Europa</option>
+    <option value="asia">Asia</option>
+    <option value="remoto">Solo remoto</option>
+  </select><br>
+
+  <label>Trabajo remoto:</label>
+  <select name="trabajo_remoto" required>
+    <option value="si">Sí</option>
+    <option value="no">No</option>
+  </select><br>
+
+  <label>¿Disponible para viajar?</label>
+  <select name="viajar" required>
+    <option value="si">Sí</option>
+    <option value="no">No</option>
+  </select><br>
+
+  <label>¿Disponible para cambio de domicilio?</label>
+  <select name="cambio_domicilio" required>
+    <option value="si">Sí</option>
+    <option value="no">No</option>
+  </select><br>
+
+  <label>Tipo de disponibilidad:</label>
+  <select name="disponibilidad" required>
+    <option value="tiempo_completo">Tiempo completo</option>
+    <option value="medio_tiempo">Medio tiempo</option>
+    <option value="freelance">Freelance</option>
+    <option value="temporal">Temporal</option>
+    <option value="por_horas">Por horas</option>
+  </select><br>
+
+  <label>¿Tiene algún tipo de discapacidad?</label>
+  <select name="discapacidad" required>
+    <option value="no">No</option>
+    <option value="visual">Visual</option>
+    <option value="auditiva">Auditiva</option>
+    <option value="motora">Motora</option>
+    <option value="cognitiva">Cognitiva</option>
+    <option value="otra">Otra</option>
+  </select><br><br>
+
   <button type="submit">Registrarse</button>
+
   {% if error %}
     <p>{{ error }}</p>
   {% endif %}

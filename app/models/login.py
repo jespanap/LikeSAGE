@@ -3,14 +3,15 @@ from passlib.context import CryptContext
 from pathlib import Path
 from app.database.config.config import driver
 
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 USERS_FILE = Path("app/data/users.json")
 
-def load_users():
-    if USERS_FILE.exists():
-        with open(USERS_FILE, "r") as f:
-            return json.load(f)
-    return {}
+# def load_users():
+#     if USERS_FILE.exists():
+#         with open(USERS_FILE, "r") as f:
+#             return json.load(f)
+#     return {}
 
 def authenticate_user(username: str, password: str):
     print(f"[DEBUG] Intentando autenticar: {username}")
