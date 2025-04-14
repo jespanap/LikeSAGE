@@ -79,6 +79,6 @@ def get_all_vacancies():
         return ofertas
 
     
-# Ejemplo de prueba
-if __name__ == "__main__":
-    get_all_vacancies()
+# # Ejemplo de prueba
+# if __name__ == "__main__":
+#     get_all_vacancies()

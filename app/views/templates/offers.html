@@ -1,29 +1,49 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Ofertas laborales</title>
-</head>
-<body>
-    <h1>Estas son las ofertas</h1>
-    <div id="offers">
-        <ul>
-            {% for v in vacancy %}
-                <li>
-                    <strong>{{ v.titulo }}</strong><br>
-                    Empresa: {{ v.empresa }}<br>
-                    Ciudad: {{ v.ciudad }}<br>
-                    Nivel educativo: {{ v.nivel_educativo }}<br>
-                    Nivel de experiencia: {{ v.nivel_experiencia }}<br>
-                    Habilidades requeridas:
-                    <ul>
-                        {% for h in v.habilidades %}
-                            <li>{{ h }}</li>
-                        {% endfor %}
-                    </ul>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Ofertas disponibles{% endblock %}
+
+{% block content %}
+<h1>Estas son las ofertas</h1>
+<div id="offers">
+    <ul>
+        {% for v in vacancy %}
+            <li>
+                <strong>{{ v.titulo }}</strong><br>
+                Empresa: {{ v.empresa }}<br>
+                Ciudad: {{ v.ciudad }}<br>
+                Nivel educativo: {{ v.nivel_educativo }}<br>
+                Nivel de experiencia: {{ v.nivel_experiencia }}<br>
+                Habilidades requeridas:
+                <ul>
+                    {% for h in v.habilidades %}
+                        <li>{{ h }}</li>
+                    {% endfor %}
+                </ul>
+
+                {% if user %}
+                    <form method="post" action="/offers/like">
+                        <input type="hidden" name="vacancy_title" value="{{ v.titulo }}">
+                        <button type="submit">👍 Like</button>
+                    </form>
+                    <form method="post" action="/offers/save">
+                        <input type="hidden" name="vacancy_title" value="{{ v.titulo }}">
+                        <button type="submit">⭐ Guardar</button>
+                    </form>
+                    <form method="post" action="/offers/share">
+                        <input type="hidden" name="vacancy_title" value="{{ v.titulo }}">
+                        <button type="submit">📤 Compartir</button>
+                    </form>
+                {% else %}
+                    <p>Inicia sesión para interactuar con las ofertas.</p>
+                    <form action="/login">
+                        <button>Iniciar sesión</button>
+                    </form>
+                    <form action="/register">
+                        <button>Registrarse</button>
+                    </form>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
