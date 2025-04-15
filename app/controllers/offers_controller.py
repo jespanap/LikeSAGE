@@ -33,7 +33,7 @@ async def interact_with_offer(
     if not user:
         return RedirectResponse("/login", status_code=302)
 
-    from app.database.models.offers_db import interact_with_vacancy
+    from app.models.offers import interact_with_vacancy
     interact_with_vacancy(user, titulo, accion)
     
     return RedirectResponse("/offers", status_code=303)
