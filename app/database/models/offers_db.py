@@ -77,8 +77,34 @@ def get_all_vacancies():
                 print(f"{key}: {value}")
         
         return ofertas
-
     
-# # Ejemplo de prueba
-# if __name__ == "__main__":
-#     get_all_vacancies()
+def get_vacancy_by_title(titulo: str):
+    with driver.session() as session:
+        result = session.run("""
+            MATCH (v:Vacancy {title: $titulo})
+            OPTIONAL MATCH (v)-[:PUBLISHED_BY]->(c:Company)
+            OPTIONAL MATCH (v)-[:LOCATED_IN]->(ci:City)
+            OPTIONAL MATCH (v)-[:REQUIRES_EDUCATION]->(e:EducationLevel)
+            OPTIONAL MATCH (v)-[:REQUIRES_EXPERIENCE]->(x:ExperienceLevel)
+            OPTIONAL MATCH (v)-[:REQUIRES_SKILL]->(h:Skill)
+            RETURN v.title AS titulo, 
+                   c.name AS empresa, 
+                   ci.name AS ciudad,
+                   e.level AS nivel_educativo, 
+                   x.level AS nivel_experiencia,
+                   collect(h.name) AS habilidades
+        """, titulo=titulo)
+
+        record = result.single()
+        if record:
+            # Aquí aseguramos que los valores devueltos estén correctamente formateados
+            return {
+                "titulo": record["titulo"],
+                "empresa": record["empresa"] if record["empresa"] else "No disponible",
+                "ciudad": record["ciudad"] if record["ciudad"] else "No disponible",
+                "nivel_educativo": record["nivel_educativo"] if record["nivel_educativo"] else "No disponible",
+                "nivel_experiencia": record["nivel_experiencia"] if record["nivel_experiencia"] else "No disponible",
+                "habilidades": record["habilidades"] if record["habilidades"] else []
+            }
+        return None
+

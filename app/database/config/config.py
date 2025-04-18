@@ -2,9 +2,11 @@
 
 from neo4j import GraphDatabase
 
-NEO4J_URI = "bolt://localhost:7687"
+# NEO4J_URI = "bolt://localhost:7687"
+NEO4J_URI = "neo4j+s://21f93858.databases.neo4j.io"
 NEO4J_USERNAME = "neo4j"
-NEO4J_PASSWORD = "tralalerotralala"
+#NEO4J_PASSWORD = "tralalerotralala"
+NEO4J_PASSWORD = "BD_1kp7XKRbxWOeS9LtEuIzf1uV56ztREWK1PLXnuj4"
 
 driver = None
 

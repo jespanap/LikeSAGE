@@ -8,7 +8,7 @@
     <ul>
         {% for v in vacancy %}
             <li>
-                <strong>{{ v.titulo }}</strong><br>
+                <strong><a href="/offers/{{ v.titulo | urlencode }}">{{ v.titulo }}</a></strong><br>
                 Empresa: {{ v.empresa }}<br>
                 Ciudad: {{ v.ciudad }}<br>
                 Nivel educativo: {{ v.nivel_educativo }}<br>
@@ -22,18 +22,21 @@
 
                 {% if user %}
                     <form method="post" action="/offers/interact">
+                        <input type="hidden" name="page" value="{{ page }}">
                         <input type="hidden" name="titulo" value="{{ v.titulo }}">
                         <input type="hidden" name="accion" value="like">
                         <button type="submit">👍 Like</button>
                     </form>
                     
                     <form method="post" action="/offers/interact">
+                        <input type="hidden" name="page" value="{{ page }}">
                         <input type="hidden" name="titulo" value="{{ v.titulo }}">
                         <input type="hidden" name="accion" value="save">
                         <button type="submit">⭐ Guardar</button>
                     </form>
                     
                     <form method="post" action="/offers/share">
+                        <input type="hidden" name="page" value="{{ page }}">
                         <input type="hidden" name="vacancy_title" value="{{ v.titulo }}">
                         <button type="submit">📤 Compartir</button>
                     </form>
@@ -49,5 +52,18 @@
             </li>
         {% endfor %}
     </ul>
+
+    <!-- Aquí va la paginación, fuera del <ul> -->
+    <div class="pagination">
+        {% if page > 1 %}
+            <a href="/offers?page={{ page - 1 }}">⬅️ Anterior</a>
+        {% endif %}
+
+        <span>Página {{ page }} de {{ total_pages }}</span>
+
+        {% if page < total_pages %}
+            <a href="/offers?page={{ page + 1 }}">Siguiente ➡️</a>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -12,14 +12,21 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/views/templates")
 
 @router.get("/offers", response_class=HTMLResponse)
-async def show_offers(request: Request):
-    user = auth.get_current_user(request) # 👈 extraemos el usuario de la sesión
-    vacancies = get_all_vacancies()     # 👈 tu función para obtener vacantes
+async def show_offers(request: Request, page: int = 1, per_page: int = 5):
+    user = auth.get_current_user(request)
+    all_vacancies = get_all_vacancies()
+
+    total = len(all_vacancies)
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_vacancies = all_vacancies[start:end]
 
     return templates.TemplateResponse("offers.html", {
         "request": request,
-        "vacancy": vacancies,
-        "user": user  # 👈 muy importante que esto esté aquí
+        "vacancy": paginated_vacancies,
+        "user": user,
+        "page": page,
+        "total_pages": (total + per_page - 1) // per_page  # redondea hacia arriba
     })
 
 
@@ -27,7 +34,8 @@ async def show_offers(request: Request):
 async def interact_with_offer(
     request: Request,
     titulo: str = Form(...),
-    accion: str = Form(...)
+    accion: str = Form(...),
+    page: int = Form(1)
 ):
     user = get_current_user(request)
     if not user:
@@ -36,7 +44,7 @@ async def interact_with_offer(
     from app.models.offers import interact_with_vacancy
     interact_with_vacancy(user, titulo, accion)
     
-    return RedirectResponse("/offers", status_code=303)
+    return RedirectResponse(f"/offers?page={page}", status_code=303)
 
 
 @router.post("/offers/like")
@@ -82,3 +90,19 @@ async def share_offer(request: Request, vacancy_title: str = Form(...)):
         """, correo=user, title=vacancy_title)
 
     return RedirectResponse("/offers", status_code=303)
+
+@router.get("/offers/{titulo}", response_class=HTMLResponse)
+async def offer_detail(request: Request, titulo: str):
+    user = get_current_user(request)
+
+    from app.database.models.offers_db import get_vacancy_by_title
+    offer = get_vacancy_by_title(titulo)
+
+    if not offer:
+        return HTMLResponse(content="Oferta no encontrada", status_code=404)
+
+    return templates.TemplateResponse("offer_detail.html", {
+        "request": request,
+        "user": user,
+        "offer": offer
+    })
