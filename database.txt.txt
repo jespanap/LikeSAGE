@@ -120,7 +120,7 @@ UNWIND [
 MERGE (k:Skill {name: kw})
 MERGE (v7)-[:REQUIRES_SKILL]->(k);
 // === Oferta 8: Globant (Remoto) ===
-MERGE (v8:Vacancy {title: "Diseñador UX/UI – Trabajo Remoto"})
+MERGE (v8:Vacancy {title: "Diseñador UX-UI – Trabajo Remoto"})
 MERGE (comp8:Company {name: "Globant"})
 MERGE (city8:City {name: "Remoto"})
 MERGE (edu8:EducationLevel {level: "tecnólogo hasta profesional"})
