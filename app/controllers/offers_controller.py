@@ -2,8 +2,8 @@ from fastapi import APIRouter, Request, Form
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.database.models.offers_db import get_all_vacancies
-from fastapi.responses import HTMLResponse
-from app.database.config.config import driver  # Asegúrate de tener acceso a `driver`
+from fastapi.responses import HTMLResponse, JSONResponse
+from app.database.config.config import driver
 from app.utils import auth
 from app.utils.auth import get_current_user
 
@@ -26,7 +26,8 @@ async def show_offers(request: Request, page: int = 1, per_page: int = 5):
         "vacancy": paginated_vacancies,
         "user": user,
         "page": page,
-        "total_pages": (total + per_page - 1) // per_page  # redondea hacia arriba
+        "total_pages": (total + per_page - 1) // per_page,
+        "query": None
     })
 
 
@@ -106,3 +107,11 @@ async def offer_detail(request: Request, titulo: str):
         "user": user,
         "offer": offer
     })
+
+@router.get("/api/offers")
+async def api_offers(page: int = 1, per_page: int = 5):
+    all_vacancies = get_all_vacancies()
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated = all_vacancies[start:end]
+    return JSONResponse(content={"offers": paginated})

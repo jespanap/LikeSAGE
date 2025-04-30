@@ -1,69 +1,113 @@
 {% extends "base.html" %}
-
-{% block title %}Ofertas disponibles{% endblock %}
+{% block title %}Buscar Empleo - Magneto{% endblock %}
 
 {% block content %}
-<h1>Estas son las ofertas</h1>
-<div id="offers">
-    <ul>
+<form action="/buscar" method="get" class="mb-6 flex">
+    <input type="text" name="query" placeholder="Busca empleo por cargo o profesión" value="{{ query }}"
+           class="flex-1 border border-gray-300 rounded-l px-4 py-2 focus:outline-none">
+    <button type="submit" class="bg-green-500 text-white px-6 rounded-r">Buscar</button>
+</form>
+
+<h2 class="text-xl font-semibold mb-4">Ofertas de empleo</h2>
+
+{% if vacancy %}
+    <div class="space-y-6">
         {% for v in vacancy %}
-            <li>
-                <strong><a href="/offers/{{ v.titulo | urlencode }}">{{ v.titulo }}</a></strong><br>
-                Empresa: {{ v.empresa }}<br>
-                Ciudad: {{ v.ciudad }}<br>
-                Nivel educativo: {{ v.nivel_educativo }}<br>
-                Nivel de experiencia: {{ v.nivel_experiencia }}<br>
-                Habilidades requeridas:
-                <ul>
+            <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition duration-300 relative">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">
+                            <a href="/offers/{{ v.titulo | urlencode }}" class="hover:underline">{{ v.titulo }}</a>
+                        </h3>
+                        <p class="text-gray-500">{{ v.empresa }}</p>
+                        <p class="text-sm text-gray-400">{{ v.ciudad }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-green-600 font-semibold">{{ v.salario }}</p>
+                        <p class="text-sm text-gray-400">{{ v.tipo_contrato }}</p>
+                    </div>
+                </div>
+
+                <p class="mt-4 text-gray-600 text-sm line-clamp-2">{{ v.descripcion }}</p>
+
+                <ul class="mt-2 text-sm text-gray-500 list-disc list-inside">
                     {% for h in v.habilidades %}
                         <li>{{ h }}</li>
                     {% endfor %}
                 </ul>
 
                 {% if user %}
-                    <form method="post" action="/offers/interact">
-                        <input type="hidden" name="page" value="{{ page }}">
-                        <input type="hidden" name="titulo" value="{{ v.titulo }}">
-                        <input type="hidden" name="accion" value="like">
-                        <button type="submit">👍 Like</button>
-                    </form>
-                    
-                    <form method="post" action="/offers/interact">
-                        <input type="hidden" name="page" value="{{ page }}">
-                        <input type="hidden" name="titulo" value="{{ v.titulo }}">
-                        <input type="hidden" name="accion" value="save">
-                        <button type="submit">⭐ Guardar</button>
-                    </form>
-                    
-                    <form method="post" action="/offers/share">
-                        <input type="hidden" name="page" value="{{ page }}">
-                        <input type="hidden" name="vacancy_title" value="{{ v.titulo }}">
-                        <button type="submit">📤 Compartir</button>
-                    </form>
-                {% else %}
-                    <p>Inicia sesión para interactuar con las ofertas.</p>
-                    <form action="/login">
-                        <button>Iniciar sesión</button>
-                    </form>
-                    <form action="/register">
-                        <button>Registrarse</button>
-                    </form>
+                    <div class="flex items-center justify-end space-x-4 mt-6">
+                        <form method="post" action="/offers/interact">
+                            <input type="hidden" name="titulo" value="{{ v.titulo }}">
+                            <input type="hidden" name="accion" value="like">
+                            <input type="hidden" name="page" value="{{ page }}">
+                            <button type="submit" class="text-red-500 hover:text-red-700" title="Me gusta" onclick="animateLike(this)">
+                                ❤️
+                            </button>
+                        </form>
+
+                        <form method="post" action="/offers/interact">
+                            <input type="hidden" name="titulo" value="{{ v.titulo }}">
+                            <input type="hidden" name="accion" value="save">
+                            <input type="hidden" name="page" value="{{ page }}">
+                            <button type="submit" class="text-blue-500 hover:text-blue-700" title="Guardar" onclick="animateSave(this)">
+                                📌
+                            </button>
+                        </form>
+
+                        <form method="post" action="/offers/share">
+                            <input type="hidden" name="vacancy_title" value="{{ v.titulo }}">
+                            <input type="hidden" name="page" value="{{ page }}">
+                            <button type="submit" class="text-green-500 hover:text-green-700" title="Compartir">
+                                🔗
+                            </button>
+                        </form>
+                    </div>
                 {% endif %}
-            </li>
+
+                <div class="mt-4 text-right">
+                    <a href="/oferta/{{ v.titulo | urlencode }}" class="text-green-500 font-semibold hover:underline">Ver más</a>
+                </div>
+            </div>
         {% endfor %}
-    </ul>
+    </div>
 
-    <!-- Aquí va la paginación, fuera del <ul> -->
-    <div class="pagination">
+    <div class="mt-6 flex justify-between items-center text-sm text-gray-600">
         {% if page > 1 %}
-            <a href="/offers?page={{ page - 1 }}">⬅️ Anterior</a>
+            <a href="/offers?page={{ page - 1 }}" class="text-green-500 hover:underline">⬅️ Anterior</a>
         {% endif %}
-
         <span>Página {{ page }} de {{ total_pages }}</span>
-
         {% if page < total_pages %}
-            <a href="/offers?page={{ page + 1 }}">Siguiente ➡️</a>
+            <a href="/offers?page={{ page + 1 }}" class="text-green-500 hover:underline">Siguiente ➡️</a>
         {% endif %}
     </div>
-</div>
+{% else %}
+    <div class="bg-white p-6 rounded-lg shadow text-center text-gray-500">
+        No se encontraron ofertas para "{{ query }}"
+    </div>
+{% endif %}
+
+<script>
+    function animateLike(button) {
+        button.classList.add('bump');
+        setTimeout(() => button.classList.remove('bump'), 400);
+    }
+
+    function animateSave(button) {
+        button.classList.add('spin');
+        setTimeout(() => button.classList.remove('spin'), 600);
+    }
+
+    function shareOffer(offerId, button) {
+        const url = `${window.location.origin}/oferta/${offerId}`;
+        navigator.clipboard.writeText(url).then(() => {
+            button.classList.add('shake');
+            alert('¡Link copiado al portapapeles!');
+            setTimeout(() => button.classList.remove('shake'), 400);
+        }).catch(err => {
+            console.error('Error al copiar el link:', err);
+        });
+    }
+</script>
 {% endblock %}

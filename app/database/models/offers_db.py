@@ -1,44 +1,6 @@
-# db/models/offers_db.py
-
+# offers_db.py
 from app.database.config.config import driver
 
-#def crear_oferta(
-#    titulo,
-#    empresa,
-#    ciudad,
-#    nivel_educativo,
-#    nivel_experiencia,
-#    habilidades
-#):
-#    query = """
-#    MERGE (v:Vacancy {title: $titulo})
-#    MERGE (c:Company {name: $empresa})
-#    MERGE (ci:City {name: $ciudad})
-#    MERGE (e:EducationLevel {level: $nivel_educativo})
-#    MERGE (x:ExperienceLevel {level: $nivel_experiencia})
-#    MERGE (v)-[:PUBLISHED_BY]->(c)
-#    MERGE (v)-[:LOCATED_IN]->(ci)
-#    MERGE (v)-[:REQUIRES_EDUCATION]->(e)
-#    MERGE (v)-[:REQUIRES_EXPERIENCE]->(x)
-#    WITH v
-#    UNWIND $habilidades AS kw
-#    MERGE (k:Skill {name: kw})
-#    MERGE (v)-[:REQUIRES_SKILL]->(k)
-#    RETURN v.title AS created
-#    """
-#
-#    with driver.session() as session:
-#        result = session.run(query, {
-#            "titulo": titulo,
-#            "empresa": empresa,
-#            "ciudad": ciudad,
-#            "nivel_educativo": nivel_educativo,
-#            "nivel_experiencia": nivel_experiencia,
-#            "habilidades": habilidades
-#        })
-#        for record in result:
-#            print(f"✅ Oferta creada exitosamente: {record['created']}")
-            
 
 def get_all_vacancies():
     query = """
@@ -50,18 +12,17 @@ def get_all_vacancies():
     OPTIONAL MATCH (v)-[:REQUIRES_SKILL]->(s:Skill)
     RETURN 
         v.title AS titulo,
-        c.name AS empresa,
-        ci.name AS ciudad,
-        e.level AS nivel_educativo,
-        x.level AS nivel_experiencia,
-        collect(s.name) AS habilidades
+        COALESCE(c.name, 'No disponible') AS empresa,
+        COALESCE(ci.name, 'No disponible') AS ciudad,
+        COALESCE(e.level, 'No especificado') AS nivel_educativo,
+        COALESCE(x.level, 'No especificado') AS nivel_experiencia,
+        collect(DISTINCT s.name) AS habilidades
     """
 
     with driver.session() as session:
         result = session.run(query)
-        ofertas = []
-        for record in result:
-            oferta = {
+        return [
+            {
                 "titulo": record["titulo"],
                 "empresa": record["empresa"],
                 "ciudad": record["ciudad"],
@@ -69,42 +30,71 @@ def get_all_vacancies():
                 "nivel_experiencia": record["nivel_experiencia"],
                 "habilidades": record["habilidades"]
             }
-            ofertas.append(oferta)
-        
-        print("Ofertas encontradas:")
-        for o in ofertas:
-            for key, value in o.items():
-                print(f"{key}: {value}")
-        
-        return ofertas
-    
-def get_vacancy_by_title(titulo: str):
-    with driver.session() as session:
-        result = session.run("""
-            MATCH (v:Vacancy {title: $titulo})
-            OPTIONAL MATCH (v)-[:PUBLISHED_BY]->(c:Company)
-            OPTIONAL MATCH (v)-[:LOCATED_IN]->(ci:City)
-            OPTIONAL MATCH (v)-[:REQUIRES_EDUCATION]->(e:EducationLevel)
-            OPTIONAL MATCH (v)-[:REQUIRES_EXPERIENCE]->(x:ExperienceLevel)
-            OPTIONAL MATCH (v)-[:REQUIRES_SKILL]->(h:Skill)
-            RETURN v.title AS titulo, 
-                   c.name AS empresa, 
-                   ci.name AS ciudad,
-                   e.level AS nivel_educativo, 
-                   x.level AS nivel_experiencia,
-                   collect(h.name) AS habilidades
-        """, titulo=titulo)
+            for record in result
+        ]
 
-        record = result.single()
+
+def get_vacancy_by_title(titulo: str):
+    query = """
+    MATCH (v:Vacancy {title: $titulo})
+    OPTIONAL MATCH (v)-[:PUBLISHED_BY]->(c:Company)
+    OPTIONAL MATCH (v)-[:LOCATED_IN]->(ci:City)
+    OPTIONAL MATCH (v)-[:REQUIRES_EDUCATION]->(e:EducationLevel)
+    OPTIONAL MATCH (v)-[:REQUIRES_EXPERIENCE]->(x:ExperienceLevel)
+    OPTIONAL MATCH (v)-[:REQUIRES_SKILL]->(h:Skill)
+    RETURN 
+        v.title AS titulo, 
+        COALESCE(c.name, 'No disponible') AS empresa, 
+        COALESCE(ci.name, 'No disponible') AS ciudad,
+        COALESCE(e.level, 'No especificado') AS nivel_educativo, 
+        COALESCE(x.level, 'No especificado') AS nivel_experiencia,
+        collect(DISTINCT h.name) AS habilidades
+    """
+    with driver.session() as session:
+        record = session.run(query, titulo=titulo).single()
+
         if record:
-            # Aquí aseguramos que los valores devueltos estén correctamente formateados
             return {
                 "titulo": record["titulo"],
-                "empresa": record["empresa"] if record["empresa"] else "No disponible",
-                "ciudad": record["ciudad"] if record["ciudad"] else "No disponible",
-                "nivel_educativo": record["nivel_educativo"] if record["nivel_educativo"] else "No disponible",
-                "nivel_experiencia": record["nivel_experiencia"] if record["nivel_experiencia"] else "No disponible",
-                "habilidades": record["habilidades"] if record["habilidades"] else []
+                "empresa": record["empresa"],
+                "ciudad": record["ciudad"],
+                "nivel_educativo": record["nivel_educativo"],
+                "nivel_experiencia": record["nivel_experiencia"],
+                "habilidades": record["habilidades"]
             }
         return None
 
+
+def search_vacancies_by_text(texto: str):
+    query = """
+    MATCH (v:Vacancy)
+    WHERE toLower(v.title) CONTAINS toLower($texto)
+    OPTIONAL MATCH (v)-[:PUBLISHED_BY]->(c:Company)
+    OPTIONAL MATCH (v)-[:LOCATED_IN]->(ci:City)
+    OPTIONAL MATCH (v)-[:REQUIRES_EDUCATION]->(edu:EducationLevel)
+    OPTIONAL MATCH (v)-[:REQUIRES_EXPERIENCE]->(xp:ExperienceLevel)
+    OPTIONAL MATCH (v)-[:REQUIRES_SKILL]->(s:Skill)
+    RETURN 
+        v.title AS titulo,
+        COALESCE(c.name, 'No disponible') AS empresa,
+        COALESCE(ci.name, 'No disponible') AS ciudad,
+        COALESCE(edu.level, 'No especificado') AS nivel_educativo,
+        COALESCE(xp.level, 'No especificado') AS nivel_experiencia,
+        collect(DISTINCT s.name) AS habilidades
+    """
+    with driver.session() as session:
+        result = session.run(query, texto=texto)
+        resultados = [
+            {
+                "titulo": record["titulo"],
+                "empresa": record["empresa"],
+                "ciudad": record["ciudad"],
+                "nivel_educativo": record["nivel_educativo"],
+                "nivel_experiencia": record["nivel_experiencia"],
+                "habilidades": record["habilidades"]
+            }
+            for record in result
+        ]
+
+        print(f"🔍 Resultados encontrados para '{texto}': {len(resultados)}")
+        return resultados
