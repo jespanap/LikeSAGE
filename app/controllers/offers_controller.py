@@ -21,6 +21,24 @@ async def show_offers(request: Request, page: int = 1, per_page: int = 5):
     end = start + per_page
     paginated_vacancies = all_vacancies[start:end]
 
+    # Obtener el estado de "me gusta" y "guardar" para cada oferta
+    if user:
+        with driver.session() as session:
+            for vacancy in paginated_vacancies:
+                # Verificar si el usuario ya ha marcado esta oferta como "me gusta"
+                like_result = session.run("""
+                    MATCH (c:Candidate {correo: $correo})-[:LIKES]->(v:Vacancy {title: $title})
+                    RETURN count(v) > 0 AS liked
+                """, correo=user, title=vacancy['titulo'])
+                vacancy['liked'] = like_result.single()['liked']
+
+                # Verificar si el usuario ya ha marcado esta oferta como "guardar"
+                save_result = session.run("""
+                    MATCH (c:Candidate {correo: $correo})-[:SAVES]->(v:Vacancy {title: $title})
+                    RETURN count(v) > 0 AS saved
+                """, correo=user, title=vacancy['titulo'])
+                vacancy['saved'] = save_result.single()['saved']
+
     return templates.TemplateResponse("offers.html", {
         "request": request,
         "vacancy": paginated_vacancies,
