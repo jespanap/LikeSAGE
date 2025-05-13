@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from app.database.config.config import driver
 from app.utils import auth
 from app.utils.auth import get_current_user
+from datetime import datetime
 
 
 router = APIRouter()
@@ -42,9 +43,31 @@ async def interact_with_offer(
     if not user:
         return RedirectResponse("/login", status_code=302)
 
-    from app.models.offers import interact_with_vacancy
-    interact_with_vacancy(user, titulo, accion)
-    
+    with driver.session() as session:
+        if accion == "like":
+            session.run("""
+                MATCH (c:Candidate {correo: $correo}), (v:Vacancy {title: $title})
+                MERGE (c)-[r:LIKES]->(v)
+            """, correo=user, title=titulo)
+
+        elif accion == "save":
+            result = session.run("""
+                MATCH (c:Candidate {correo: $correo})-[r:SAVES]->(v:Vacancy {title: $title})
+                RETURN r
+            """, correo=user, title=titulo)
+
+            if result.peek():  # Ya está guardado: eliminar
+                session.run("""
+                    MATCH (c:Candidate {correo: $correo})-[r:SAVES]->(v:Vacancy {title: $title})
+                    DELETE r
+                """, correo=user, title=titulo)
+            else:  # No está guardado: guardar
+                session.run("""
+                    MATCH (c:Candidate {correo: $correo}), (v:Vacancy {title: $title})
+                    MERGE (c)-[r:SAVES]->(v)
+                    SET r.timestamp = datetime()
+                """, correo=user, title=titulo)
+
     return RedirectResponse(f"/offers?page={page}", status_code=303)
 
 
@@ -115,3 +138,23 @@ async def api_offers(page: int = 1, per_page: int = 5):
     end = start + per_page
     paginated = all_vacancies[start:end]
     return JSONResponse(content={"offers": paginated})
+
+@router.get("/saved-offers", response_class=HTMLResponse)
+async def saved_offers(request: Request):
+    user = get_current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=302)
+
+    with driver.session() as session:
+        result = session.run("""
+            MATCH (c:Candidate {correo: $correo})-[r:SAVES]->(v:Vacancy)
+            RETURN v ORDER BY r.timestamp DESC
+        """, correo=user)
+
+        saved = [record["v"] for record in result]
+
+    return templates.TemplateResponse("saved_offers.html", {
+        "request": request,
+        "user": user,
+        "vacancy": saved
+    })

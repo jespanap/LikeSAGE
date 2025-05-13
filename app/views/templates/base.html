@@ -17,8 +17,10 @@
 
     <header class="bg-white shadow p-4 flex items-center justify-between">
         <a href="/" class="text-2xl font-bold text-green-600">Magneto Empleos</a>
+        <a href="/offers" class="text-gray-600 hover:text-green-600">🏠 Ofertas</a>
         <div>
             {% if user %}
+                <a href="/saved-offers" class="text-blue-600 hover:underline">📌 Guardadas</a>
                 <span class="text-gray-700 mr-4">Hola, {{ user }}</span>
                 <a href="/logout" class="text-sm text-red-600 hover:underline">Cerrar sesión</a>
             {% else %}

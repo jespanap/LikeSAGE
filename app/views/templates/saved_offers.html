@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Ofertas Guardadas{% endblock %}
+
+{% block content %}
+<h2 class="text-xl font-semibold mb-4">Tus ofertas guardadas</h2>
+
+{% if vacancy %}
+    <div class="space-y-4">
+        {% for v in vacancy %}
+            <div class="bg-white p-4 rounded-lg shadow hover:shadow-md transition duration-300">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-base font-semibold text-gray-800">
+                        <a href="/offers/{{ v.title | urlencode }}" class="hover:underline">{{ v.title }}</a>
+                    </h3>
+
+                    <!-- Botones en vertical -->
+                    <div class="flex flex-col items-end space-y-2">
+                        <!-- Like -->
+                        <form method="post" action="/offers/interact">
+                            <input type="hidden" name="titulo" value="{{ v.title }}">
+                            <input type="hidden" name="accion" value="like">
+                            <input type="hidden" name="page" value="{{ page }}">
+                            <button type="submit" class="text-red-500 hover:text-red-700" title="Me gusta" onclick="animateLike(this)">
+                                <i class="{% if v.liked %}fa-solid{% else %}fa-regular{% endif %} fa-heart toggle-icon"></i>
+                            </button>
+                        </form>
+
+                        <!-- Save -->
+                        <form method="post" action="/offers/interact">
+                            <input type="hidden" name="titulo" value="{{ v.title }}">
+                            <input type="hidden" name="accion" value="save">
+                            <input type="hidden" name="page" value="{{ page }}">
+                            <button type="submit" class="text-blue-500 hover:text-blue-700" title="Guardar" onclick="animateSave(this)">
+                                <i class="fa-solid fa-bookmark toggle-icon"></i>
+                            </button>
+                        </form>
+
+                        <!-- Share -->
+                        <button type="button" class="text-green-500 hover:text-green-700" title="Compartir" onclick="copyToClipboard('{{ request.url.scheme }}://{{ request.url.hostname }}/offers/{{ v.title | urlencode }}')">
+                            <i class="fa-regular fa-share-from-square"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="bg-white p-4 rounded-lg shadow text-center text-gray-500">
+        Aún no has guardado ninguna oferta.
+    </div>
+{% endif %}
+
+<script>
+    function animateLike(button) {
+        const icon = button.querySelector('.toggle-icon');
+        icon.classList.add('bump');
+        toggleIcon(icon, 'fa-heart');
+        setTimeout(() => icon.classList.remove('bump'), 400);
+    }
+
+    function animateSave(button) {
+        const icon = button.querySelector('.toggle-icon');
+        icon.classList.add('spin');
+        toggleIcon(icon, 'fa-bookmark');
+        setTimeout(() => icon.classList.remove('spin'), 600);
+    }
+
+    function toggleIcon(icon, baseClass) {
+        if (icon.classList.contains('fa-regular')) {
+            icon.classList.remove('fa-regular');
+            icon.classList.add('fa-solid');
+        } else {
+            icon.classList.remove('fa-solid');
+            icon.classList.add('fa-regular');
+        }
+    }
+
+    function copyToClipboard(url) {
+        navigator.clipboard.writeText(url)
+            .then(() => alert("Enlace copiado al portapapeles"))
+            .catch(() => alert("Error al copiar el enlace"));
+    }
+</script>
+{% endblock %}
